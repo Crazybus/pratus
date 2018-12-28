@@ -58,7 +58,7 @@ func build(goos string, goarch string) error {
 	os.Setenv("CGO_ENABLED", "0")
 
 	cmd := exec.Command(
-		"go",
+		"/usr/local/go/bin/go",
 		"build",
 		"-v",
 		"-o",
