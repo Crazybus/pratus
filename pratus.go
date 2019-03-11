@@ -12,7 +12,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func getPRState(owner string, repo string, number int) (state string, err error) {
+func getPRState(owner string, repo string, number int) (state string, statuses []github.RepoStatus, err error) {
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -23,17 +23,26 @@ func getPRState(owner string, repo string, number int) (state string, err error)
 
 	pr, _, err := g.PullRequests.Get(ctx, owner, repo, number)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	commit := pr.GetHead().GetSHA()
 
 	status, _, err := g.Repositories.GetCombinedStatus(ctx, owner, repo, commit, nil)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return status.GetState(), nil
+	return status.GetState(), status.Statuses, nil
+}
+
+func getFailedURLs(statuses []github.RepoStatus) (failed []string) {
+	for _, status := range statuses {
+		if status.GetState() != "success" {
+			failed = append(failed, status.GetTargetURL())
+		}
+	}
+	return failed
 }
 
 func parseGitHubURL(baseURL string, URL string) (owner string, repo string, number int) {
@@ -64,17 +73,27 @@ func main() {
 
 	for {
 
-		state, err := getPRState(owner, repo, number)
+		state, statuses, err := getPRState(owner, repo, number)
 		if err != nil {
 			print(err)
 		}
 
-		if state != "pending" {
-			fmt.Println("\nPR finished with state: " + state)
-			os.Exit(0)
-		}
+		failedURLs := getFailedURLs(statuses)
 
-		fmt.Print(".")
-		time.Sleep(sleepTimer)
+		switch state {
+		case "pending":
+			fmt.Print(".")
+			time.Sleep(sleepTimer)
+		case "success":
+			fmt.Println("\nPR succeeded :)")
+			os.Exit(0)
+		case "failure", "error":
+			fmt.Println("\nPR failed :( Failed URLs:")
+			fmt.Println(strings.Join(failedURLs, "\n"))
+			os.Exit(1)
+		default:
+			fmt.Printf("\nPR contained an unknown status: %q", state)
+			os.Exit(1)
+		}
 	}
 }
