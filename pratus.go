@@ -33,7 +33,18 @@ func getPRState(owner string, repo string, number int) (state string, statuses [
 		return "", nil, err
 	}
 
-	return status.GetState(), status.Statuses, nil
+	state = status.GetState()
+	statuses = status.Statuses
+	return state, statuses, nil
+}
+
+func stillPending(statuses []github.RepoStatus) (pending bool) {
+	for _, status := range statuses {
+		if status.GetState() == "pending" {
+			return true
+		}
+	}
+	return false
 }
 
 func getFailedURLs(statuses []github.RepoStatus) (failed []string) {
@@ -76,14 +87,18 @@ func main() {
 		state, statuses, err := getPRState(owner, repo, number)
 		if err != nil {
 			print(err)
+			continue
+		}
+
+		if stillPending(statuses) {
+			fmt.Print(".")
+			time.Sleep(sleepTimer)
+			continue
 		}
 
 		failedURLs := getFailedURLs(statuses)
 
 		switch state {
-		case "pending":
-			fmt.Print(".")
-			time.Sleep(sleepTimer)
 		case "success":
 			fmt.Println("\nPR succeeded :)")
 			os.Exit(0)
