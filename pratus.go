@@ -73,7 +73,7 @@ func main() {
 	timer := time.Duration(60)
 	if _, ok := os.LookupEnv("PRATUS_SLEEP_TIMER"); ok {
 		customTimer, _ := strconv.Atoi(os.Getenv("PRATUS_SLEEP_TIMER"))
-		timer = time.Duration(customTimer) * time.Second
+		timer = time.Duration(customTimer)
 	}
 
 	sleepTimer := timer * time.Second
