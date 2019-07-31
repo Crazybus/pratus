@@ -15,8 +15,13 @@ import (
 func getPRState(owner string, repo string, number int) (state string, statuses []github.RepoStatus, err error) {
 
 	ctx := context.Background()
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		fmt.Println("GITHUB_TOKEN must be set, aborting.")
+		os.Exit(1)
+	}
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
+		&oauth2.Token{AccessToken: token},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	g := github.NewClient(tc)
