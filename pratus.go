@@ -12,14 +12,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func getPRState(owner string, repo string, number int) (state string, statuses []github.RepoStatus, err error) {
+func getPRState(owner string, repo string, number int, token string) (state string, statuses []github.RepoStatus, err error) {
 
 	ctx := context.Background()
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		fmt.Println("GITHUB_TOKEN must be set, aborting.")
-		os.Exit(1)
-	}
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -72,6 +67,12 @@ func parseGitHubURL(baseURL string, URL string) (owner string, repo string, numb
 
 func main() {
 
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		fmt.Println("GITHUB_TOKEN must be set, aborting.")
+		os.Exit(1)
+	}
+
 	URL := os.Args[1]
 	gitHubBaseURL := "https://github.com/"
 
@@ -89,7 +90,7 @@ func main() {
 
 	for {
 
-		state, statuses, err := getPRState(owner, repo, number)
+		state, statuses, err := getPRState(owner, repo, number, token)
 		if err != nil {
 			print(err)
 			continue
