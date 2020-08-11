@@ -92,7 +92,8 @@ func main() {
 
 		state, statuses, err := getPRState(owner, repo, number, token)
 		if err != nil {
-			print(err)
+			fmt.Println(err)
+			time.Sleep(sleepTimer)
 			continue
 		}
 
