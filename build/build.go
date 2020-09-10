@@ -19,7 +19,6 @@ var operatingSystems = [...]string{
 }
 
 var archs = [...]string{
-	"386",
 	"amd64",
 }
 
