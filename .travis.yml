@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - "1.11"
+  - "1.15"
 
 services:
   - docker
@@ -9,7 +9,7 @@ services:
 script:
   - go test -v -race -coverprofile=coverage.txt -covermode=atomic
   - wget https://github.com/Crazybus/lope/releases/download/0.4.0/lope-linux_amd64 -O lope && chmod +x lope
-  - ./lope golang:1.15 '/usr/local/go/bin/go run build/build.go'
+  - ./lope -blacklist GO golang:1.15 '/usr/local/go/bin/go run build/build.go'
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
