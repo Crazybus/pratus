@@ -97,7 +97,7 @@ func main() {
 			continue
 		}
 
-		if stillPending(statuses) {
+		if state == "pending" || stillPending(statuses) {
 			fmt.Print(".")
 			time.Sleep(sleepTimer)
 			continue
